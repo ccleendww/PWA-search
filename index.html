@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>V2EX 搜索</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="搜索">
+
+    <link rel="apple-touch-icon" href="https://v2ex.com/static/img/v2ex@2x.png">
+<script>
+    // 注册 Service Worker (即使是空的，iOS 也会更倾向于识别为 PWA)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f7;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+        .search-box-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 15px 45px 15px 15px;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            border-radius: 25px 0 0 25px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .search-btn {
+            padding: 15px 20px;
+            font-size: 16px;
+            background-color: #007aff;
+            color: white;
+            border: 1px solid #0051ba;
+            border-left: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-btn:hover {
+            background-color: #0051ba;
+        }
+
+        .quick-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background-color: #e0e0e0;
+            border-color: #999;
+        }
+
+        .quick-btn.active {
+            background-color: #007aff;
+            color: white;
+            border-color: #0051ba;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>搜索</h1>
+
+        <div class="search-container">
+            <div class="search-box-wrapper">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" class="search-box" placeholder="输入关键词..." autofocus>
+                    <button class="search-btn" onclick="doSearch()" title="搜索">🔍</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-buttons">
+            <button class="quick-btn active" data-engine="google" onclick="selectEngine(this, 'google')">Google</button>
+            <button class="quick-btn" data-engine="v2ex" onclick="selectEngine(this, 'v2ex')">V2EX</button>
+            <button class="quick-btn" data-engine="zlibrary" onclick="selectEngine(this, 'zlibrary')">Z-Library</button>
+        </div>
+    </div>
+
+    <script>
+        let currentEngine = 'google';
+
+        function selectEngine(button, engine) {
+            // 移除其他按键的 active 状态
+            document.querySelectorAll('.quick-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // 为点击的按键添加 active 状态
+            button.classList.add('active');
+            currentEngine = engine;
+        }
+
+        function doSearch() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) {
+                return;
+            }
+
+            let url = '';
+
+            if (currentEngine === 'google') {
+                const encodedQuery = encodeURIComponent(query);
+                url = `https://www.google.com/search?q=${encodedQuery}`;
+            } else if (currentEngine === 'v2ex') {
+                const encodedQuery = encodeURIComponent(query + ' site:v2ex.com');
+                url = `https://www.google.com/search?q=${encodedQuery}`;
+            } else if (currentEngine === 'zlibrary') {
+                const encodedQuery = encodeURIComponent(query);
+                url = `https://z-lib.by/s/${encodedQuery}?`;
+            }
+
+            if (url) {
+                window.location.href = url;
+            }
+        }
+
+        // 监听回车键
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                doSearch();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

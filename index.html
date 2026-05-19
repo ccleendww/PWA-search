@@ -5,126 +5,235 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>V2EX 搜索</title>
+    <title>Search</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="搜索">
+    <meta name="apple-mobile-web-app-title" content="Search">
 
-    <link rel="apple-touch-icon" href="https://v2ex.com/static/img/v2ex@2x.png">
-<script>
-    // 注册 Service Worker (即使是空的，iOS 也会更倾向于识别为 PWA)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-  </script>
+    <link rel="icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <script>
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
     <style>
+        :root {
+            color-scheme: light dark;
+            --tea-color: #8B6F47;
+            --tea-dark: #6D5E4E;
+            --light-bg: #fafafa;
+            --light-surface: #ffffff;
+            --light-text: #212121;
+            --light-text-secondary: #666666;
+            --dark-bg: #121212;
+            --dark-surface: #1e1e1e;
+            --dark-text: #ffffff;
+            --dark-text-secondary: #b3b3b3;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #f5f5f7;
+            background-color: var(--light-bg);
+            color: var(--light-text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: var(--dark-bg);
+                color: var(--dark-text);
+            }
+
+            .container {
+                background-color: var(--dark-surface);
+            }
+
+            .search-input-wrapper {
+                background-color: var(--dark-surface);
+            }
+
+            .search-box {
+                background-color: rgba(255, 255, 255, 0.05) !important;
+                color: var(--dark-text) !important;
+                border-color: rgba(255, 255, 255, 0.12) !important;
+            }
+
+            .search-box::placeholder {
+                color: var(--dark-text-secondary) !important;
+            }
+
+            .search-box:focus {
+                background-color: rgba(255, 255, 255, 0.08) !important;
+                border-color: var(--tea-color) !important;
+            }
+
+            .search-btn {
+                background-color: var(--tea-color) !important;
+                border-color: var(--tea-color) !important;
+                box-shadow: 0 2px 8px rgba(139, 111, 71, 0.3) !important;
+            }
+
+            .search-btn:hover {
+                background-color: var(--tea-dark) !important;
+                border-color: var(--tea-dark) !important;
+                box-shadow: 0 4px 12px rgba(139, 111, 71, 0.4) !important;
+            }
+
+            .quick-btn {
+                background-color: rgba(255, 255, 255, 0.05);
+                color: var(--dark-text);
+                border-color: rgba(255, 255, 255, 0.12);
+            }
+
+            .quick-btn:hover {
+                background-color: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .quick-btn.active {
+                background-color: var(--tea-color);
+                color: white;
+                border-color: var(--tea-color);
+                box-shadow: 0 2px 8px rgba(139, 111, 71, 0.3);
+            }
         }
 
         .container {
             width: 90%;
-            max-width: 500px;
-            text-align: center;
+            max-width: 520px;
+            padding: 32px;
+            background-color: var(--light-surface);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            outline: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
+        @media (prefers-color-scheme: dark) {
+            .container {
+                background-color: #2a2a2a;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
         }
 
         .search-container {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            align-items: center;
+            gap: 0;
+            margin-top: 0;
+            align-items: stretch;
         }
 
         .search-box-wrapper {
             flex: 1;
-            position: relative;
         }
 
         .search-input-wrapper {
             display: flex;
-            align-items: center;
+            align-items: stretch;
             position: relative;
+            flex: 1;
         }
 
         .search-box {
             flex: 1;
-            padding: 15px 45px 15px 15px;
-            font-size: 18px;
-            border: 1px solid #ddd;
-            border-radius: 25px 0 0 25px;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 8px 0 0 8px;
             outline: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
-            width: 100%;
+            background-color: rgba(0, 0, 0, 0.02);
+            color: var(--light-text);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .search-box::placeholder {
+            color: var(--light-text-secondary);
+        }
+
+        .search-box:focus {
+            background-color: rgba(0, 0, 0, 0.04);
+            border-color: var(--tea-color);
+            box-shadow: inset 0 0 0 2px rgba(139, 111, 71, 0.1);
         }
 
         .search-btn {
-            padding: 15px 20px;
-            font-size: 16px;
-            background-color: #007aff;
+            padding: 12px 20px;
+            font-size: 18px;
+            background-color: var(--tea-color);
             color: white;
-            border: 1px solid #0051ba;
+            border: 1px solid var(--tea-color);
             border-left: none;
-            border-radius: 0 25px 25px 0;
+            border-radius: 0 8px 8px 0;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(139, 111, 71, 0.25);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            white-space: nowrap;
         }
 
         .search-btn:hover {
-            background-color: #0051ba;
+            background-color: var(--tea-dark);
+            border-color: var(--tea-dark);
+            box-shadow: 0 4px 12px rgba(139, 111, 71, 0.35);
+        }
+
+        .search-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(139, 111, 71, 0.25);
         }
 
         .quick-buttons {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 24px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .quick-btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             font-size: 14px;
-            background-color: #f0f0f0;
-            color: #333;
-            border: 2px solid #ddd;
-            border-radius: 20px;
+            background-color: rgba(0, 0, 0, 0.04);
+            color: var(--light-text);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            letter-spacing: 0.25px;
         }
 
         .quick-btn:hover {
-            background-color: #e0e0e0;
-            border-color: #999;
+            background-color: rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
 
         .quick-btn.active {
-            background-color: #007aff;
+            background-color: var(--tea-color);
             color: white;
-            border-color: #0051ba;
+            border-color: var(--tea-color);
+            box-shadow: 0 2px 8px rgba(139, 111, 71, 0.25);
+        }
+
+        .quick-btn:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -132,12 +241,10 @@
 <body>
 
     <div class="container">
-        <h1>搜索</h1>
-
         <div class="search-container">
             <div class="search-box-wrapper">
                 <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" class="search-box" placeholder="输入关键词..." autofocus>
+                    <input type="text" id="searchInput" class="search-box" placeholder="" autofocus>
                     <button class="search-btn" onclick="doSearch()" title="搜索">🔍</button>
                 </div>
             </div>
@@ -154,11 +261,9 @@
         let currentEngine = 'google';
 
         function selectEngine(button, engine) {
-            // 移除其他按键的 active 状态
             document.querySelectorAll('.quick-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            // 为点击的按键添加 active 状态
             button.classList.add('active');
             currentEngine = engine;
         }
@@ -183,11 +288,10 @@
             }
 
             if (url) {
-                window.location.href = url;
+                window.open(url, '_blank');
             }
         }
 
-        // 监听回车键
         document.getElementById('searchInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 doSearch();
